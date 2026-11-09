@@ -394,9 +394,27 @@ export const TeamClient: React.FC<TeamClientProps> = ({
               </div>
 
               {/* Waiting status pill */}
-              <div className="flex items-center justify-center gap-2 text-xs text-amber-400 font-semibold bg-amber-500/10 py-3 px-5 rounded-2xl border border-amber-500/20 max-w-md mx-auto shadow-md">
-                <Clock className="w-4 h-4 animate-spin text-amber-400" />
-                <span>Đã sẵn sàng! Đang chờ Máy Chủ phát lệnh bắt đầu trận đấu...</span>
+              <div className="space-y-2 max-w-md mx-auto">
+                <div className="flex items-center justify-center gap-2 text-xs text-amber-400 font-semibold bg-amber-500/10 py-3 px-5 rounded-2xl border border-amber-500/20 shadow-md">
+                  <Clock className="w-4 h-4 animate-spin text-amber-400" />
+                  <span>Đã sẵn sàng! Đang chờ Máy Chủ phát lệnh bắt đầu trận đấu...</span>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Đã kết nối Internet (Phòng: {roomCode})
+                  </span>
+                  <span>•</span>
+                  <a
+                    href={`/?role=host&room=${roomCode}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-amber-400 hover:text-amber-300 underline font-semibold"
+                  >
+                    Mở Máy Chủ (Host)
+                  </a>
+                </div>
               </div>
             </div>
           )}
