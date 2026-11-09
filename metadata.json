@@ -1,0 +1,6 @@
+{
+  "name": "Đại Chiến Kéo Co Trực Tuyến - Tug of War Arena",
+  "description": "Game kéo co đố vui đối kháng 2 đội trực tuyến với màn hình máy chủ chiếu rạp và máy thi đấu riêng biệt cho từng đội.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
