@@ -94,6 +94,9 @@ const ActiveGameSession: React.FC<ActiveGameSessionProps> = ({ role, roomCode, o
     toastMessage,
     submitAnswer,
     updateTeamName,
+    randomizeMembers,
+    updateTeamIcon,
+    updateMembers,
     hostStartGame,
     hostNextRound,
     hostPauseResume,
@@ -150,6 +153,8 @@ const ActiveGameSession: React.FC<ActiveGameSessionProps> = ({ role, roomCode, o
             onAdjustRope={hostAdjustRope}
             onSetConfig={hostSetConfig}
             onUpdateTeamName={updateTeamName}
+            onRandomizeMembers={randomizeMembers}
+            onUpdateTeamIcon={updateTeamIcon}
             onSwitchView={onSwitchView}
           />
         ) : (
@@ -167,6 +172,9 @@ const ActiveGameSession: React.FC<ActiveGameSessionProps> = ({ role, roomCode, o
             lastPullEvent={lastPullEvent}
             onSubmitAnswer={submitAnswer}
             onUpdateTeamName={updateTeamName}
+            onRandomizeMembers={randomizeMembers}
+            onUpdateTeamIcon={updateTeamIcon}
+            onUpdateMembers={updateMembers}
             onSwitchView={onSwitchView}
           />
         ) : (

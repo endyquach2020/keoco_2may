@@ -10,9 +10,16 @@ export interface Question {
 
 export type ClientRole = 'host' | 'team1' | 'team2' | 'spectator';
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  icon: string; // Fun emoji avatar (🦁, 🐯, 🐼, etc.)
+}
+
 export interface TeamState {
   id: 'team1' | 'team2';
   name: string;
+  icon: string; // Team badge/mascot (🔥, ⚡, 🦁, etc.)
   color: string;
   score: number;
   streak: number;
@@ -21,6 +28,7 @@ export interface TeamState {
   selectedOption: number | null; // Sanitized: only visible to team itself or to host after round ends
   lastAnswerCorrect: boolean | null;
   timeTaken: number | null;
+  members: TeamMember[]; // 7 members pulling the rope!
 }
 
 export type GameStatus = 'lobby' | 'countdown' | 'in_round' | 'round_result' | 'game_over';
@@ -56,6 +64,9 @@ export interface ClientMessage {
     | 'JOIN'
     | 'SUBMIT_ANSWER'
     | 'UPDATE_TEAM_NAME'
+    | 'UPDATE_TEAM_ICON'
+    | 'UPDATE_MEMBERS'
+    | 'RANDOMIZE_MEMBERS'
     | 'HOST_START_GAME'
     | 'HOST_NEXT_ROUND'
     | 'HOST_PAUSE_RESUME'
@@ -69,9 +80,11 @@ export interface ClientMessage {
     | 'PING';
   role?: ClientRole;
   teamName?: string;
+  teamIcon?: string;
   roomCode?: string;
   optionIndex?: number;
-  team?: 'team1' | 'team2';
+  team?: 'team1' | 'team2' | 'both';
+  members?: TeamMember[];
   question?: Question | Omit<Question, 'id'>;
   questionId?: string;
   presetKey?: string;

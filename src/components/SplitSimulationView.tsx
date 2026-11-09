@@ -74,6 +74,8 @@ export const SplitSimulationView: React.FC<SplitSimulationViewProps> = ({ roomCo
               onAdjustRope={hostHook.hostAdjustRope}
               onSetConfig={hostHook.hostSetConfig}
               onUpdateTeamName={hostHook.updateTeamName}
+              onRandomizeMembers={hostHook.randomizeMembers}
+              onUpdateTeamIcon={hostHook.updateTeamIcon}
             />
           ) : (
             <div className="p-12 text-center text-slate-500">Đang khởi tạo kết nối Máy Chủ...</div>
@@ -95,6 +97,9 @@ export const SplitSimulationView: React.FC<SplitSimulationViewProps> = ({ roomCo
                 lastPullEvent={team1Hook.lastPullEvent}
                 onSubmitAnswer={team1Hook.submitAnswer}
                 onUpdateTeamName={team1Hook.updateTeamName}
+                onRandomizeMembers={team1Hook.randomizeMembers}
+                onUpdateTeamIcon={team1Hook.updateTeamIcon}
+                onUpdateMembers={team1Hook.updateMembers}
               />
             ) : (
               <div className="p-8 text-center text-slate-500">Đang kết nối Đội 1...</div>
@@ -114,6 +119,9 @@ export const SplitSimulationView: React.FC<SplitSimulationViewProps> = ({ roomCo
                 lastPullEvent={team2Hook.lastPullEvent}
                 onSubmitAnswer={team2Hook.submitAnswer}
                 onUpdateTeamName={team2Hook.updateTeamName}
+                onRandomizeMembers={team2Hook.randomizeMembers}
+                onUpdateTeamIcon={team2Hook.updateTeamIcon}
+                onUpdateMembers={team2Hook.updateMembers}
               />
             ) : (
               <div className="p-8 text-center text-slate-500">Đang kết nối Đội 2...</div>

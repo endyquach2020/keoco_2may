@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_QUESTIONS, PRESET_PACKS } from './src/data/defaultQuestions.js';
+import { generateRandomTeamMembers } from './src/data/rosterNames.js';
 import { Question, GameState, ClientMessage, ServerMessage, ClientRole, PullEvent } from './src/types/game.js';
 
 dotenv.config();
@@ -40,6 +41,9 @@ interface Room {
 const rooms = new Map<string, Room>();
 
 function createInitialState(roomCode: string, totalQuestions: number): GameState {
+  const t1Members = generateRandomTeamMembers(7, 0);
+  const t2Members = generateRandomTeamMembers(7, 7);
+
   return {
     roomCode,
     status: 'lobby',
@@ -54,6 +58,7 @@ function createInitialState(roomCode: string, totalQuestions: number): GameState
     team1: {
       id: 'team1',
       name: 'Chiến Binh Đỏ',
+      icon: '🔥',
       color: '#ef4444',
       score: 0,
       streak: 0,
@@ -62,10 +67,12 @@ function createInitialState(roomCode: string, totalQuestions: number): GameState
       selectedOption: null,
       lastAnswerCorrect: null,
       timeTaken: null,
+      members: t1Members,
     },
     team2: {
       id: 'team2',
       name: 'Phượng Hoàng Xanh',
+      icon: '⚡',
       color: '#3b82f6',
       score: 0,
       streak: 0,
@@ -74,6 +81,7 @@ function createInitialState(roomCode: string, totalQuestions: number): GameState
       selectedOption: null,
       lastAnswerCorrect: null,
       timeTaken: null,
+      members: t2Members,
     },
     winner: null,
     lastPull: null,
@@ -408,6 +416,37 @@ wss.on('connection', (ws: WebSocket) => {
             room.state.team1.name = data.teamName.trim().slice(0, 24);
           } else if (data.team === 'team2' && data.teamName) {
             room.state.team2.name = data.teamName.trim().slice(0, 24);
+          }
+          broadcastRoom(room);
+          break;
+        }
+
+        case 'UPDATE_TEAM_ICON': {
+          if (data.team === 'team1' && data.teamIcon) {
+            room.state.team1.icon = data.teamIcon;
+          } else if (data.team === 'team2' && data.teamIcon) {
+            room.state.team2.icon = data.teamIcon;
+          }
+          broadcastRoom(room);
+          break;
+        }
+
+        case 'UPDATE_MEMBERS': {
+          if (data.team === 'team1' && data.members) {
+            room.state.team1.members = data.members;
+          } else if (data.team === 'team2' && data.members) {
+            room.state.team2.members = data.members;
+          }
+          broadcastRoom(room);
+          break;
+        }
+
+        case 'RANDOMIZE_MEMBERS': {
+          if (data.team === 'team1' || data.team === 'both') {
+            room.state.team1.members = generateRandomTeamMembers(7, Math.floor(Math.random() * 10));
+          }
+          if (data.team === 'team2' || data.team === 'both') {
+            room.state.team2.members = generateRandomTeamMembers(7, Math.floor(Math.random() * 10) + 7);
           }
           broadcastRoom(room);
           break;

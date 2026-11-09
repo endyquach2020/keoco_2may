@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GameState, Question, PullEvent } from '../types/game';
+import { GameState, Question, PullEvent, TeamMember } from '../types/game';
 import { setSoundMuted, getSoundMuted } from '../utils/sound';
+import { TEAM_MASCOT_ICONS, STUDENT_ROSTER, FUN_ICONS } from '../data/rosterNames';
 import confetti from 'canvas-confetti';
 import {
   Volume2,
@@ -16,6 +17,8 @@ import {
   Sparkles,
   Tag,
   X,
+  Shuffle,
+  Users,
 } from 'lucide-react';
 
 interface TeamClientProps {
@@ -25,6 +28,9 @@ interface TeamClientProps {
   lastPullEvent: PullEvent | null;
   onSubmitAnswer: (optionIndex: number) => void;
   onUpdateTeamName: (team: 'team1' | 'team2', name: string) => void;
+  onRandomizeMembers?: (team: 'team1' | 'team2') => void;
+  onUpdateTeamIcon?: (team: 'team1' | 'team2', icon: string) => void;
+  onUpdateMembers?: (team: 'team1' | 'team2', members: TeamMember[]) => void;
   onSwitchView?: (role: string) => void;
 }
 
@@ -35,12 +41,17 @@ export const TeamClient: React.FC<TeamClientProps> = ({
   lastPullEvent,
   onSubmitAnswer,
   onUpdateTeamName,
+  onRandomizeMembers,
+  onUpdateTeamIcon,
+  onUpdateMembers,
   onSwitchView,
 }) => {
   const isTeam1 = teamId === 'team1';
   const myTeam = isTeam1 ? gameState.team1 : gameState.team2;
 
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
+  const [memberEditName, setMemberEditName] = useState('');
   const [nameInput, setNameInput] = useState(myTeam.name);
   const [isMuted, setIsMutedState] = useState(getSoundMuted());
   const [nameSavedSuccess, setNameSavedSuccess] = useState(false);
@@ -89,16 +100,26 @@ export const TeamClient: React.FC<TeamClientProps> = ({
     }
   };
 
+  const handleSaveMemberEdit = (idx: number) => {
+    if (memberEditName.trim() && myTeam.members) {
+      const updated = [...myTeam.members];
+      updated[idx] = {
+        ...updated[idx],
+        name: memberEditName.trim(),
+      };
+      onUpdateMembers?.(teamId, updated);
+      setEditingMemberIndex(null);
+      setMemberEditName('');
+    }
+  };
+
   const toggleMute = () => {
     const next = !isMuted;
     setIsMutedState(next);
     setSoundMuted(next);
   };
 
-  // Calculate my team's tug balance
   const myLeadSteps = isTeam1 ? -currentStep : currentStep;
-
-  // Timer math
   const timerPercent = roundTotalTime > 0 ? (roundTimeRemaining / roundTotalTime) * 100 : 0;
   const isTimeCritical = roundTimeRemaining <= 5 && roundTimeRemaining > 0;
 
@@ -123,7 +144,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
         '🌪️ Cơn Lốc Xanh',
       ];
 
-  // Theming colors
   const themeClasses = isTeam1
     ? {
         borderGlow: 'border-red-500/50 shadow-red-950/40',
@@ -144,13 +164,13 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none pb-6">
-      {/* TOP HEADER FOR THIS TEAM ONLY */}
+      {/* TOP HEADER */}
       <header className={`bg-gradient-to-r ${themeClasses.cardBg} border-b border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md`}>
         <div className="flex items-center gap-3">
           <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg shrink-0 ${
             isTeam1 ? 'bg-red-600 text-white shadow-red-600/40' : 'bg-blue-600 text-white shadow-blue-600/40'
           }`}>
-            {isTeam1 ? '🔴' : '🔵'}
+            {myTeam.icon || (isTeam1 ? '🔥' : '⚡')}
           </div>
 
           <div>
@@ -158,7 +178,7 @@ export const TeamClient: React.FC<TeamClientProps> = ({
               <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
                 isTeam1 ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
               }`}>
-                {isTeam1 ? 'MÁY THI ĐẤU ĐỘI 1 (ĐỎ)' : 'MÁY THI ĐẤU ĐỘI 2 (XANH)'}
+                {isTeam1 ? 'ĐỘI 1 (ĐỎ)' : 'ĐỘI 2 (XANH)'} • 7 THÀNH VIÊN
               </span>
               <span className="text-xs text-slate-400">Phòng: {roomCode}</span>
             </div>
@@ -178,10 +198,10 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                     ? 'bg-red-950/70 hover:bg-red-900 border-red-500/40 text-red-300'
                     : 'bg-blue-950/70 hover:bg-blue-900 border-blue-500/40 text-blue-300'
                 }`}
-                title="Đổi tên đội"
+                title="Đổi tên và linh vật đội"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>Đổi tên</span>
+                <span>Đổi tên & Icon</span>
               </button>
             </div>
           </div>
@@ -189,13 +209,11 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
         {/* Status Tools */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Connection status indicator */}
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
             {isConnected ? 'Đã kết nối' : 'Đang kết nối lại...'}
           </div>
 
-          {/* Sound Toggle */}
           <button
             onClick={toggleMute}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
@@ -204,7 +222,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
           </button>
 
-          {/* Exit / Switch button */}
           {onSwitchView && (
             <button
               onClick={() => onSwitchView('')}
@@ -218,17 +235,15 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
       {/* MAIN CONTAINER */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-5">
-        {/* SUCCESS NOTIFICATION IF NAME JUST CHANGED */}
         {nameSavedSuccess && (
           <div className="p-3 rounded-2xl bg-emerald-950/90 border border-emerald-500 text-emerald-200 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xl animate-in fade-in duration-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            Đã đổi tên đội thành &quot;{myTeam.name}&quot; và đồng bộ lên màn hình Máy Chủ!
+            Đã lưu & đồng bộ thông tin đội lên màn hình máy chủ!
           </div>
         )}
 
         {/* TEAM DASHBOARD METRICS */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {/* My Score Card */}
           <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
@@ -243,7 +258,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
             </div>
           </div>
 
-          {/* Streak Combo Card */}
           <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
@@ -258,7 +272,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
             </div>
           </div>
 
-          {/* Tug Balance Status Card */}
           <div className="col-span-2 sm:col-span-1 p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
               TÌNH HÌNH DÂY THỪNG
@@ -287,12 +300,8 @@ export const TeamClient: React.FC<TeamClientProps> = ({
             <span className="text-slate-500">Đối Thủ</span>
           </div>
 
-          {/* Mini gauge bar */}
           <div className="relative h-4 rounded-full bg-slate-800 overflow-hidden border border-slate-700 flex items-center">
-            {/* Center line marker */}
             <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-full bg-white/70 z-10" />
-
-            {/* Tug indicator point */}
             <div
               className={`absolute top-0.5 bottom-0.5 w-6 rounded-full transition-all duration-500 shadow-md z-20 flex items-center justify-center text-[9px] font-black ${
                 isTeam1 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
@@ -308,7 +317,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
         {/* GAME CONTENT CONTAINER */}
         <div className={`rounded-3xl bg-slate-900 border ${themeClasses.borderGlow} p-5 sm:p-8 shadow-2xl relative overflow-hidden`}>
-          {/* Top timer line */}
           {status === 'in_round' && (
             <div className="absolute top-0 inset-x-0 h-2 bg-slate-800">
               <div
@@ -322,29 +330,101 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
           {/* STATE 1: LOBBY */}
           {status === 'lobby' && (
-            <div className="py-6 space-y-6">
+            <div className="py-4 space-y-6">
               {/* Welcome Badge & Title */}
               <div className="text-center space-y-2">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-3xl shadow-xl ${
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-3xl shadow-xl text-3xl ${
                   isTeam1 ? 'bg-red-600/20 text-red-400 border border-red-500/30' : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                 }`}>
-                  {isTeam1 ? <Flame className="w-8 h-8" /> : <Zap className="w-8 h-8" />}
+                  {myTeam.icon || (isTeam1 ? '🔥' : '⚡')}
                 </div>
 
                 <h2 className="text-2xl sm:text-3xl font-black text-white">
                   Đội Của Bạn: <span className={themeClasses.accentText}>{myTeam.name}</span>
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-                  Hãy cùng các thành viên đặt một cái tên thật ngầu trước khi Máy Chủ phát lệnh bắt đầu!
+                  Đội hình gồm <strong>7 chiến binh kéo co</strong> được chỉ định ngẫu nhiên từ danh sách!
                 </p>
               </div>
 
-              {/* DEDICATED TEAM RENAMING BOX */}
-              <div className={`p-5 rounded-2xl border bg-slate-950/70 ${themeClasses.borderGlow} space-y-3 max-w-xl mx-auto shadow-inner`}>
+              {/* 7 TEAM MEMBERS ROSTER DISPLAY */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                      7 Chiến Binh Kéo Co Của {isTeam1 ? 'Đội Đỏ' : 'Đội Xanh'}
+                    </span>
+                  </div>
+
+                  {onRandomizeMembers && (
+                    <button
+                      onClick={() => onRandomizeMembers(teamId)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-xs transition-all border border-amber-500/40"
+                      title="Chọn ngẫu nhiên 7 bạn mới từ danh sách"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                      <span>Đổi ngẫu nhiên 7 bạn</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Grid of 7 members */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                  {(myTeam.members || []).map((m, idx) => (
+                    <div
+                      key={m.id || idx}
+                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex flex-col items-center text-center group relative transition-all"
+                    >
+                      <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">
+                        {m.icon || '🔥'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono font-bold block">
+                        Số {idx + 1}
+                      </span>
+
+                      {editingMemberIndex === idx ? (
+                        <div className="flex items-center gap-1 mt-1 w-full">
+                          <input
+                            type="text"
+                            value={memberEditName}
+                            onChange={(e) => setMemberEditName(e.target.value)}
+                            className="w-full px-1 py-0.5 rounded bg-slate-950 text-white text-[11px] font-bold border border-amber-500 text-center outline-none"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveMemberEdit(idx);
+                            }}
+                          />
+                          <button
+                            onClick={() => handleSaveMemberEdit(idx)}
+                            className="p-1 rounded bg-emerald-600 text-white text-[10px]"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span
+                          onClick={() => {
+                            setEditingMemberIndex(idx);
+                            setMemberEditName(m.name);
+                          }}
+                          className="font-bold text-white text-xs truncate max-w-full cursor-pointer hover:text-amber-400"
+                          title="Bấm để đổi tên bạn này"
+                        >
+                          {m.name}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* DEDICATED TEAM RENAMING BOX & MASCOT PICKER */}
+              <div className={`p-4 sm:p-5 rounded-2xl border bg-slate-950/70 ${themeClasses.borderGlow} space-y-3 max-w-xl mx-auto shadow-inner`}>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                     <Tag className="w-4 h-4 text-amber-400" />
-                    Đặt tên cho đội của bạn
+                    Đổi tên & Icon Linh vật của đội
                   </label>
                   <span className="text-[11px] text-slate-500 font-mono">Tối đa 24 ký tự</span>
                 </div>
@@ -370,10 +450,35 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                   </button>
                 </div>
 
+                {/* Team Mascot Icon Selection */}
+                <div className="pt-2 border-t border-slate-800/80">
+                  <span className="text-[10px] font-bold text-slate-400 block mb-1.5">
+                    Chọn Icon Linh vật biểu tượng cho {isTeam1 ? 'Đội Đỏ' : 'Đội Xanh'}:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TEAM_MASCOT_ICONS.map((m) => (
+                      <button
+                        key={m.icon}
+                        type="button"
+                        onClick={() => onUpdateTeamIcon?.(teamId, m.icon)}
+                        className={`px-2.5 py-1 rounded-xl text-base transition-all flex items-center gap-1 border ${
+                          myTeam.icon === m.icon
+                            ? isTeam1 ? 'bg-red-600 border-red-400 text-white scale-110 shadow-lg' : 'bg-blue-600 border-blue-400 text-white scale-110 shadow-lg'
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+                        }`}
+                        title={m.label}
+                      >
+                        <span>{m.icon}</span>
+                        <span className="text-[10px] font-semibold hidden sm:inline">{m.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Name suggestions chips */}
                 <div className="pt-2 border-t border-slate-800/80">
                   <span className="text-[10px] font-bold text-slate-400 block mb-1.5 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-400" /> Gợi ý tên hay cho {isTeam1 ? 'Đội Đỏ' : 'Đội Xanh'}:
+                    <Sparkles className="w-3 h-3 text-amber-400" /> Gợi ý tên hay:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {teamNameSuggestions.map((sug) => (
@@ -429,7 +534,7 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                 KÉO!
               </div>
               <p className="text-sm text-slate-300">
-                Hãy chuẩn bị tinh thần và chọn đáp án thật nhanh để tạo lực kéo mạnh nhất cho {myTeam.name}!
+                Cả 7 chiến binh hãy chuẩn bị tinh thần và chọn đáp án thật nhanh để tạo lực kéo mạnh nhất cho {myTeam.name}!
               </p>
             </div>
           )}
@@ -471,7 +576,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                   const label = ['A', 'B', 'C', 'D'][idx];
                   const isSelected = myTeam.selectedOption === idx;
 
-                  // High-contrast button styling
                   const buttonColors = [
                     'hover:border-amber-500 hover:bg-amber-950/30',
                     'hover:border-blue-500 hover:bg-blue-950/30',
@@ -492,7 +596,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                           : `bg-slate-800/80 border-slate-700/80 text-slate-100 ${buttonColors} hover:scale-[1.01] active:scale-[0.99]`
                       }`}
                     >
-                      {/* Option letter pill */}
                       <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0 shadow-md ${
                         isSelected
                           ? isTeam1 ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'
@@ -501,7 +604,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                         {label}
                       </span>
 
-                      {/* Option text */}
                       <span className="text-sm sm:text-base font-bold flex-1 leading-snug">
                         {opt}
                       </span>
@@ -514,7 +616,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
                 })}
               </div>
 
-              {/* Status footer for submitted answer */}
               {myTeam.hasAnswered && (
                 <div className={`p-4 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold border ${
                   isTeam1 ? 'bg-red-950/60 border-red-500/50 text-red-300' : 'bg-blue-950/60 border-blue-500/50 text-blue-300'
@@ -531,7 +632,6 @@ export const TeamClient: React.FC<TeamClientProps> = ({
           {/* STATE 4: ROUND RESULT */}
           {status === 'round_result' && currentQuestion && (
             <div className="py-6 space-y-6 animate-in fade-in duration-300">
-              {/* Verdict Banner */}
               <div className={`p-6 rounded-2xl text-center space-y-2 border shadow-xl ${
                 myTeam.lastAnswerCorrect
                   ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200'
@@ -553,12 +653,11 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
                 <p className="text-xs sm:text-sm font-medium opacity-90 max-w-md mx-auto">
                   {myTeam.lastAnswerCorrect
-                    ? `Bạn đã mang về 100 điểm cho ${myTeam.name} và tạo lực kéo mạnh mẽ!`
+                    ? `Cả 7 chiến binh đã kéo thêm 1 bước và mang về 100 điểm cho ${myTeam.name}!`
                     : `Hãy bình tĩnh lấy lại tinh thần để bứt phá ở hiệp đấu tiếp theo nhé!`}
                 </p>
               </div>
 
-              {/* Show correct answer */}
               <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
                   ĐÁP ÁN CHÍNH XÁC CỦA CÂU HỎI:
@@ -602,7 +701,7 @@ export const TeamClient: React.FC<TeamClientProps> = ({
 
               <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
                 {winner === teamId
-                  ? `Tuyệt vời! ${myTeam.name} đã chứng minh sức mạnh trí tuệ và tốc độ đỉnh cao, kéo sập đối thủ!`
+                  ? `Tuyệt vời! Cả 7 chiến binh ${myTeam.name} đã chứng minh sức mạnh trí tuệ và tốc độ đỉnh cao!`
                   : `Đội bạn đã thi đấu hết mình với ${myTeam.score} điểm! Hãy sẵn sàng cho trận phục thù nhé!`}
               </p>
 
@@ -614,7 +713,7 @@ export const TeamClient: React.FC<TeamClientProps> = ({
         </div>
       </main>
 
-      {/* DEDICATED RENAME MODAL (ACCESSIBLE ANY TIME VIA HEADER) */}
+      {/* DEDICATED RENAME & ICON MODAL */}
       {isRenameModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4">
@@ -622,7 +721,7 @@ export const TeamClient: React.FC<TeamClientProps> = ({
               <div className="flex items-center gap-2">
                 <Tag className="w-5 h-5 text-amber-400" />
                 <h3 className="font-bold text-white text-base">
-                  Đổi Tên Cho {isTeam1 ? 'Đội 1 (Đỏ)' : 'Đội 2 (Xanh)'}
+                  Đổi Tên & Icon Cho {isTeam1 ? 'Đội 1 (Đỏ)' : 'Đội 2 (Xanh)'}
                 </h3>
               </div>
               <button
@@ -651,10 +750,34 @@ export const TeamClient: React.FC<TeamClientProps> = ({
               />
             </div>
 
+            {/* Mascot Icons */}
+            <div>
+              <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                Chọn Icon Linh Vật Đội:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {TEAM_MASCOT_ICONS.map((m) => (
+                  <button
+                    key={m.icon}
+                    type="button"
+                    onClick={() => onUpdateTeamIcon?.(teamId, m.icon)}
+                    className={`p-2 rounded-xl text-xl border transition-all ${
+                      myTeam.icon === m.icon
+                        ? isTeam1 ? 'bg-red-600 border-red-400 scale-110 shadow-lg' : 'bg-blue-600 border-blue-400 scale-110 shadow-lg'
+                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700'
+                    }`}
+                    title={m.label}
+                  >
+                    {m.icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Suggestions */}
             <div>
               <span className="text-[11px] font-bold text-slate-400 block mb-1.5">
-                Hoặc chọn nhanh gợi ý:
+                Hoặc chọn nhanh gợi ý tên:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {teamNameSuggestions.map((sug) => (

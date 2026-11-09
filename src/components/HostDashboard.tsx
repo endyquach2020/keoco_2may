@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Maximize2,
   Edit3,
+  Shuffle,
 } from 'lucide-react';
 
 interface HostDashboardProps {
@@ -44,6 +45,8 @@ interface HostDashboardProps {
   onAdjustRope: (delta: number) => void;
   onSetConfig: (targetSteps?: number, roundDuration?: number) => void;
   onUpdateTeamName?: (team: 'team1' | 'team2', name: string) => void;
+  onRandomizeMembers?: (team?: 'team1' | 'team2' | 'both') => void;
+  onUpdateTeamIcon?: (team: 'team1' | 'team2', icon: string) => void;
   onSwitchView?: (role: string) => void;
 }
 
@@ -61,7 +64,10 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   onDeleteQuestion,
   onLoadPreset,
   onAdjustRope,
+  onSetConfig,
   onUpdateTeamName,
+  onRandomizeMembers,
+  onUpdateTeamIcon,
   onSwitchView,
 }) => {
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
@@ -245,20 +251,20 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
           {/* TEAM 1 (RED) CARD */}
           <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/70 to-slate-900 border border-red-500/40 shadow-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/40 font-black text-xl">
-                🔴
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-red-600/30 border border-red-500/50 flex items-center justify-center text-white shadow-lg shadow-red-600/40 text-2xl shrink-0">
+                {team1.icon || '🔥'}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase text-red-400 tracking-wider">ĐỘI 1</span>
+                  <span className="text-xs font-black uppercase text-red-400 tracking-wider">ĐỘI 1 (ĐỎ)</span>
                   {team1.streak >= 2 && (
                     <span className="flex items-center gap-0.5 bg-red-600 text-white text-[10px] px-1.5 py-0.2 rounded font-black">
                       <Flame className="w-3 h-3" /> COMBO x{team1.streak}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mt-0.5">
                   <h3 className="font-extrabold text-base sm:text-lg text-white truncate max-w-[130px] sm:max-w-[160px]">
                     {team1.name}
                   </h3>
@@ -277,17 +283,24 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                     </button>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" /> {team1.connectedCount} thiết bị
-                  </span>
-                  <span>•</span>
-                  <span>{team1.hasAnswered ? '✅ Đã trả lời' : '⏳ Đang chờ...'}</span>
+
+                {/* 7 Members Preview */}
+                <div className="mt-1.5 flex flex-wrap gap-1 max-w-[260px]">
+                  {(team1.members || []).map((m, idx) => (
+                    <span
+                      key={m.id || idx}
+                      className="px-1.5 py-0.2 rounded-md bg-slate-900/90 border border-red-500/30 text-[10px] text-red-300 font-bold flex items-center gap-0.5"
+                      title={`Chiến binh ${idx + 1}`}
+                    >
+                      <span>{m.icon}</span>
+                      <span className="truncate max-w-[65px]">{m.name}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="text-right">
+            <div className="text-right shrink-0 ml-2">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ĐIỂM SỐ</span>
               <span className="text-2xl sm:text-3xl font-mono font-black text-red-400">{team1.score}</span>
             </div>
@@ -319,25 +332,25 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
 
           {/* TEAM 2 (BLUE) CARD */}
           <div className="p-4 rounded-2xl bg-gradient-to-l from-blue-950/70 to-slate-900 border border-blue-500/40 shadow-xl flex items-center justify-between">
-            <div className="text-left">
+            <div className="text-left shrink-0 mr-2">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ĐIỂM SỐ</span>
               <span className="text-2xl sm:text-3xl font-mono font-black text-blue-400">{team2.score}</span>
             </div>
 
-            <div className="flex items-center gap-3 flex-row-reverse text-right">
-              <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/40 font-black text-xl">
-                🔵
+            <div className="flex items-start gap-3 flex-row-reverse text-right">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/30 border border-blue-500/50 flex items-center justify-center text-white shadow-lg shadow-blue-600/40 text-2xl shrink-0">
+                {team2.icon || '⚡'}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 justify-end">
                   {team2.streak >= 2 && (
                     <span className="flex items-center gap-0.5 bg-blue-600 text-white text-[10px] px-1.5 py-0.2 rounded font-black">
                       <Zap className="w-3 h-3" /> COMBO x{team2.streak}
                     </span>
                   )}
-                  <span className="text-xs font-black uppercase text-blue-400 tracking-wider">ĐỘI 2</span>
+                  <span className="text-xs font-black uppercase text-blue-400 tracking-wider">ĐỘI 2 (XANH)</span>
                 </div>
-                <div className="flex items-center gap-1.5 justify-end">
+                <div className="flex items-center gap-1.5 justify-end mt-0.5">
                   {onUpdateTeamName && (
                     <button
                       onClick={() => {
@@ -356,12 +369,19 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                     {team2.name}
                   </h3>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-400 justify-end">
-                  <span>{team2.hasAnswered ? '✅ Đã trả lời' : '⏳ Đang chờ...'}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" /> {team2.connectedCount} thiết bị
-                  </span>
+
+                {/* 7 Members Preview */}
+                <div className="mt-1.5 flex flex-wrap gap-1 justify-end max-w-[260px]">
+                  {(team2.members || []).map((m, idx) => (
+                    <span
+                      key={m.id || idx}
+                      className="px-1.5 py-0.2 rounded-md bg-slate-900/90 border border-blue-500/30 text-[10px] text-blue-300 font-bold flex items-center gap-0.5"
+                      title={`Chiến binh ${idx + 1}`}
+                    >
+                      <span className="truncate max-w-[65px]">{m.name}</span>
+                      <span>{m.icon}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -565,6 +585,19 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                 {isPaused ? 'Tiếp tục' : 'Tạm dừng'}
               </button>
             )}
+
+            <button
+              onClick={() => {
+                if (confirm('Bạn có muốn bốc ngẫu nhiên 7 thành viên mới cho Đội 1 và 7 thành viên cho Đội 2 từ danh sách?')) {
+                  onRandomizeMembers?.('both');
+                }
+              }}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-amber-500/20 text-amber-300 hover:text-amber-200 text-xs sm:text-sm font-bold transition-all border border-amber-500/30 flex items-center gap-1.5"
+              title="Bốc ngẫu nhiên 7 bạn cho Đội 1 và 7 bạn cho Đội 2 từ danh sách"
+            >
+              <Shuffle className="w-4 h-4 text-amber-400" />
+              <span>Chia 14 bạn ngẫu nhiên</span>
+            </button>
 
             <button
               onClick={() => {

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GameState, ClientRole, Question, PullEvent, ServerMessage, ClientMessage } from '../types/game';
+import { GameState, ClientRole, Question, PullEvent, ServerMessage, ClientMessage, TeamMember } from '../types/game';
 import { playPullSound, playWhistle, playCorrectSound, playWrongSound, playVictorySound, playTickSound } from '../utils/sound';
 import { CloudRelay } from '../utils/cloudRelay';
 import { ClientGameEngine } from '../utils/clientGameEngine';
 import { DEFAULT_QUESTIONS } from '../data/defaultQuestions';
+import { generateRandomTeamMembers } from '../data/rosterNames';
 
 interface UseGameSocketOptions {
   role: ClientRole;
@@ -29,6 +30,7 @@ export function useGameSocket({ role, roomCode = 'ARENA', initialTeamName }: Use
     team1: {
       id: 'team1',
       name: role === 'team1' && initialTeamName ? initialTeamName : 'Chiến Binh Đỏ',
+      icon: '🔥',
       color: '#ef4444',
       score: 0,
       streak: 0,
@@ -37,10 +39,12 @@ export function useGameSocket({ role, roomCode = 'ARENA', initialTeamName }: Use
       selectedOption: null,
       lastAnswerCorrect: null,
       timeTaken: null,
+      members: generateRandomTeamMembers(7, 0),
     },
     team2: {
       id: 'team2',
       name: role === 'team2' && initialTeamName ? initialTeamName : 'Phượng Hoàng Xanh',
+      icon: '⚡',
       color: '#3b82f6',
       score: 0,
       streak: 0,
@@ -49,6 +53,7 @@ export function useGameSocket({ role, roomCode = 'ARENA', initialTeamName }: Use
       selectedOption: null,
       lastAnswerCorrect: null,
       timeTaken: null,
+      members: generateRandomTeamMembers(7, 7),
     },
     winner: null,
     lastPull: null,
@@ -348,6 +353,18 @@ export function useGameSocket({ role, roomCode = 'ARENA', initialTeamName }: Use
     dispatchAction({ type: 'HOST_SET_CONFIG', targetSteps, roundDuration });
   }, [dispatchAction]);
 
+  const randomizeMembers = useCallback((team: 'team1' | 'team2' | 'both' = 'both') => {
+    dispatchAction({ type: 'RANDOMIZE_MEMBERS', team });
+  }, [dispatchAction]);
+
+  const updateTeamIcon = useCallback((team: 'team1' | 'team2', teamIcon: string) => {
+    dispatchAction({ type: 'UPDATE_TEAM_ICON', team, teamIcon });
+  }, [dispatchAction]);
+
+  const updateMembers = useCallback((team: 'team1' | 'team2', members: TeamMember[]) => {
+    dispatchAction({ type: 'UPDATE_MEMBERS', team, members });
+  }, [dispatchAction]);
+
   return {
     gameState,
     questions,
@@ -357,6 +374,9 @@ export function useGameSocket({ role, roomCode = 'ARENA', initialTeamName }: Use
     toastMessage,
     submitAnswer,
     updateTeamName,
+    randomizeMembers,
+    updateTeamIcon,
+    updateMembers,
     hostStartGame,
     hostNextRound,
     hostPauseResume,

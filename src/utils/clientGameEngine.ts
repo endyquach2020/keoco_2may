@@ -1,5 +1,6 @@
-import { GameState, Question, PullEvent, ClientMessage } from '../types/game';
+import { GameState, Question, PullEvent, ClientMessage, TeamMember } from '../types/game';
 import { DEFAULT_QUESTIONS, PRESET_PACKS } from '../data/defaultQuestions';
+import { generateRandomTeamMembers } from '../data/rosterNames';
 
 export class ClientGameEngine {
   public state: GameState;
@@ -14,6 +15,9 @@ export class ClientGameEngine {
   }
 
   private createInitialState(roomCode: string, totalQuestions: number): GameState {
+    const t1Members = generateRandomTeamMembers(7, 0);
+    const t2Members = generateRandomTeamMembers(7, 7);
+
     return {
       roomCode: (roomCode || 'ARENA').toUpperCase().trim(),
       status: 'lobby',
@@ -28,6 +32,7 @@ export class ClientGameEngine {
       team1: {
         id: 'team1',
         name: 'Chiến Binh Đỏ',
+        icon: '🔥',
         color: '#ef4444',
         score: 0,
         streak: 0,
@@ -36,10 +41,12 @@ export class ClientGameEngine {
         selectedOption: null,
         lastAnswerCorrect: null,
         timeTaken: null,
+        members: t1Members,
       },
       team2: {
         id: 'team2',
         name: 'Phượng Hoàng Xanh',
+        icon: '⚡',
         color: '#3b82f6',
         score: 0,
         streak: 0,
@@ -48,6 +55,7 @@ export class ClientGameEngine {
         selectedOption: null,
         lastAnswerCorrect: null,
         timeTaken: null,
+        members: t2Members,
       },
       winner: null,
       lastPull: null,
@@ -74,6 +82,37 @@ export class ClientGameEngine {
           this.state.team1.name = msg.teamName.trim().slice(0, 24);
         } else if (msg.team === 'team2' && msg.teamName) {
           this.state.team2.name = msg.teamName.trim().slice(0, 24);
+        }
+        this.emitUpdate();
+        break;
+      }
+
+      case 'UPDATE_TEAM_ICON': {
+        if (msg.team === 'team1' && msg.teamIcon) {
+          this.state.team1.icon = msg.teamIcon;
+        } else if (msg.team === 'team2' && msg.teamIcon) {
+          this.state.team2.icon = msg.teamIcon;
+        }
+        this.emitUpdate();
+        break;
+      }
+
+      case 'UPDATE_MEMBERS': {
+        if (msg.team === 'team1' && msg.members) {
+          this.state.team1.members = msg.members;
+        } else if (msg.team === 'team2' && msg.members) {
+          this.state.team2.members = msg.members;
+        }
+        this.emitUpdate();
+        break;
+      }
+
+      case 'RANDOMIZE_MEMBERS': {
+        if (msg.team === 'team1' || msg.team === 'both') {
+          this.state.team1.members = generateRandomTeamMembers(7, Math.floor(Math.random() * 10));
+        }
+        if (msg.team === 'team2' || msg.team === 'both') {
+          this.state.team2.members = generateRandomTeamMembers(7, Math.floor(Math.random() * 10) + 7);
         }
         this.emitUpdate();
         break;
@@ -366,10 +405,18 @@ export class ClientGameEngine {
 
     const prevT1 = this.state.team1.name;
     const prevT2 = this.state.team2.name;
+    const prevT1Icon = this.state.team1.icon;
+    const prevT2Icon = this.state.team2.icon;
+    const prevT1Members = this.state.team1.members;
+    const prevT2Members = this.state.team2.members;
 
     this.state = this.createInitialState(this.state.roomCode, this.questions.length);
     this.state.team1.name = prevT1;
     this.state.team2.name = prevT2;
+    this.state.team1.icon = prevT1Icon;
+    this.state.team2.icon = prevT2Icon;
+    this.state.team1.members = prevT1Members;
+    this.state.team2.members = prevT2Members;
 
     this.emitUpdate();
   }
