@@ -677,12 +677,24 @@ Chỉ trả về JSON thuần túy, không có markdown formatting, không có b
 
 // Setup Vite in Dev or Static files in Production
 const isProduction = process.env.NODE_ENV === 'production';
-const PORT = Number(process.env.PORT) || 3000;
+
+// AI Studio dev server must always listen on port 3000 (port 8080 is reserved for Nginx reverse proxy)
+let portToListen = 3000;
+const portArgIdx = process.argv.indexOf('--port');
+if (portArgIdx !== -1 && process.argv[portArgIdx + 1]) {
+  portToListen = Number(process.argv[portArgIdx + 1]) || 3000;
+} else if (process.env.PORT && process.env.PORT !== '8080') {
+  portToListen = Number(process.env.PORT) || 3000;
+}
+const PORT = portToListen;
 
 if (!isProduction) {
   const { createServer: createViteServer } = await import('vite');
   const vite = await createViteServer({
-    server: { middlewareMode: true },
+    server: {
+      middlewareMode: true,
+      hmr: process.env.DISABLE_HMR === 'true' ? false : undefined,
+    },
     appType: 'spa',
   });
   app.use(vite.middlewares);
@@ -693,6 +705,11 @@ if (!isProduction) {
   });
 }
 
+server.on('error', (err: any) => {
+  console.error('Server error:', err);
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🎮 Kéo Co Server running on http://0.0.0.0:${PORT}`);
 });
+

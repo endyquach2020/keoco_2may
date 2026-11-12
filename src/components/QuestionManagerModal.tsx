@@ -551,32 +551,61 @@ export const QuestionManagerModal: React.FC<QuestionManagerModalProps> = ({
                 {Object.entries(PRESET_PACKS).map(([key, pack]) => (
                   <div
                     key={key}
-                    className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 hover:border-amber-500/50 transition-all flex flex-col justify-between"
+                    className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 hover:border-amber-500/50 transition-all flex flex-col justify-between group"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30">
-                          {pack.questions.length} câu hỏi
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl p-1.5 rounded-xl bg-slate-900 border border-slate-800">
+                            {pack.icon || '🎯'}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30">
+                            {pack.questions.length} câu hỏi
+                          </span>
+                        </div>
+                        <span className="text-xs font-semibold text-slate-400 bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800">
+                          {pack.category || 'Trắc nghiệm'}
                         </span>
-                        <Sparkles className="w-4 h-4 text-amber-400" />
                       </div>
-                      <h3 className="font-bold text-base text-white mb-2">{pack.name}</h3>
-                      <p className="text-xs text-slate-400 line-clamp-2">
-                        Gồm các câu hỏi thú vị, kiểm tra kiến thức và phản xạ nhanh cho cả 2 đội thi đấu kéo co.
+                      <h3 className="font-bold text-base text-white mb-1.5 group-hover:text-amber-300 transition-colors">
+                        {pack.name}
+                      </h3>
+                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                        {pack.description}
                       </p>
+
+                      {/* Sample preview list of questions */}
+                      <div className="mt-3 pt-3 border-t border-slate-700/60 space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                          Xem trước câu hỏi:
+                        </span>
+                        <div className="text-[11px] text-slate-300 space-y-0.5">
+                          {pack.questions.slice(0, 3).map((q, qIdx) => (
+                            <div key={q.id || qIdx} className="truncate text-slate-400">
+                              <span className="text-amber-400/80 font-bold mr-1">#{qIdx + 1}</span>
+                              {q.text}
+                            </div>
+                          ))}
+                          {pack.questions.length > 3 && (
+                            <div className="text-[10px] text-slate-500 italic">
+                              ... và {pack.questions.length - 3} câu hỏi đặc sắc khác
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <button
                       onClick={() => {
-                        if (confirm(`Bạn muốn nạp "${pack.name}"? (Sẽ thay thế câu hỏi hiện tại của trận đấu)`)) {
+                        if (confirm(`Bạn muốn nạp "${pack.name}"? (Sẽ thay thế danh sách câu hỏi hiện tại của trận đấu)`)) {
                           onLoadPreset(key);
                           setActiveTab('list');
                         }
                       }}
-                      className="mt-4 w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-xs sm:text-sm border border-amber-500/40 transition-all flex items-center justify-center gap-2"
+                      className="mt-4 w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-xs sm:text-sm border border-amber-500/40 transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Nạp bộ câu hỏi này
+                      Nạp bộ câu hỏi này ({pack.questions.length} câu)
                     </button>
                   </div>
                 ))}

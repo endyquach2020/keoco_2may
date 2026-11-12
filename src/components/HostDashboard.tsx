@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameState, Question, PullEvent } from '../types/game';
 import { TugArena } from './TugArena';
 import { QuestionManagerModal } from './QuestionManagerModal';
+import { PRESET_PACKS } from '../data/defaultQuestions';
 import { setSoundMuted, getSoundMuted } from '../utils/sound';
 import confetti from 'canvas-confetti';
 import {
@@ -27,6 +28,7 @@ import {
   Maximize2,
   Edit3,
   Shuffle,
+  Sparkles,
 } from 'lucide-react';
 
 interface HostDashboardProps {
@@ -407,7 +409,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
 
           {status === 'lobby' ? (
             /* Lobby instructions */
-            <div className="py-8 text-center space-y-4 max-w-xl mx-auto">
+            <div className="py-6 text-center space-y-4 max-w-2xl mx-auto">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 <Share2 className="w-7 h-7" />
               </div>
@@ -418,7 +420,60 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                 Máy chủ này dùng để <strong>chiếu rạp cho cả phòng theo dõi 2 đội</strong>. Hãy gửi link hoặc mở mã QR cho Đội 1 và Đội 2 kết nối trên máy tính hoặc điện thoại của họ.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              {/* 5 BỘ CÂU HỎI NHANH (MỖI BỘ 10 CÂU) */}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-left space-y-3 shadow-inner">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                    <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
+                      Chọn nhanh bộ câu hỏi thi đấu (10 câu / bộ):
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsQuestionModalOpen(true)}
+                    className="text-xs text-slate-400 hover:text-amber-400 font-semibold underline transition-colors"
+                  >
+                    Quản lý / Tự soạn thêm
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {Object.entries(PRESET_PACKS).map(([key, pack]) => {
+                    const isSelected =
+                      questions.length === pack.questions.length &&
+                      questions[0]?.id === pack.questions[0]?.id;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => onLoadPreset(key)}
+                        className={`p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.01]'
+                            : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/60'
+                        }`}
+                      >
+                        <span className="text-2xl shrink-0 mt-0.5">{pack.icon || '🎯'}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="text-xs font-bold truncate text-white">{pack.name}</h4>
+                            {isSelected && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                            {pack.description}
+                          </p>
+                          <span className="inline-block mt-1 px-1.5 py-0.2 rounded bg-slate-800 text-[10px] text-amber-300 font-semibold border border-slate-700">
+                            10 câu hỏi
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
                 <button
                   onClick={() => handleCopy('team1')}
                   className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-950/70 hover:bg-red-900 text-red-300 border border-red-500/50 text-xs font-bold transition-all flex items-center justify-center gap-2"
