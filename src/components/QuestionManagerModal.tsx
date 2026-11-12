@@ -53,6 +53,9 @@ export const QuestionManagerModal: React.FC<QuestionManagerModalProps> = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // Preset filter state
+  const [presetTabFilter, setPresetTabFilter] = useState<'all' | 'medium30' | 'fast10'>('medium30');
+
   if (!isOpen) return null;
 
   const resetForm = () => {
@@ -543,15 +546,57 @@ export const QuestionManagerModal: React.FC<QuestionManagerModalProps> = ({
           {/* TAB 3: PRESETS */}
           {activeTab === 'presets' && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-400">
-                Chọn một trong các bộ câu hỏi được biên soạn sẵn để bắt đầu thi đấu ngay lập tức mà không cần gõ câu hỏi:
-              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <p className="text-xs text-slate-400">
+                  Chọn một trong 15 bộ câu hỏi được biên soạn sẵn để bắt đầu thi đấu ngay lập tức:
+                </p>
+
+                {/* Filter buttons */}
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs shrink-0">
+                  <button
+                    onClick={() => setPresetTabFilter('medium30')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      presetTabFilter === 'medium30'
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    10 Chủ đề Tiêu chuẩn (30 câu) ⭐
+                  </button>
+                  <button
+                    onClick={() => setPresetTabFilter('fast10')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      presetTabFilter === 'fast10'
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    5 Bộ Đấu Nhanh (10 câu)
+                  </button>
+                  <button
+                    onClick={() => setPresetTabFilter('all')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      presetTabFilter === 'all'
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Tất cả (15)
+                  </button>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                {Object.entries(PRESET_PACKS).map(([key, pack]) => (
+                {Object.entries(PRESET_PACKS)
+                  .filter(([_, pack]) => {
+                    if (presetTabFilter === 'medium30') return pack.questions.length === 30;
+                    if (presetTabFilter === 'fast10') return pack.questions.length === 10;
+                    return true;
+                  })
+                  .map(([key, pack]) => (
                   <div
                     key={key}
-                    className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 hover:border-amber-500/50 transition-all flex flex-col justify-between group"
+                    className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 hover:border-amber-500/50 transition-all flex flex-col justify-between group shadow-lg"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3">
@@ -559,9 +604,18 @@ export const QuestionManagerModal: React.FC<QuestionManagerModalProps> = ({
                           <span className="text-2xl p-1.5 rounded-xl bg-slate-900 border border-slate-800">
                             {pack.icon || '🎯'}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30">
+                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-xs border ${
+                            pack.questions.length === 30
+                              ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                          }`}>
                             {pack.questions.length} câu hỏi
                           </span>
+                          {pack.difficulty && (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-950/60 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                              Cấp độ {pack.difficulty}
+                            </span>
+                          )}
                         </div>
                         <span className="text-xs font-semibold text-slate-400 bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800">
                           {pack.category || 'Trắc nghiệm'}
@@ -577,7 +631,7 @@ export const QuestionManagerModal: React.FC<QuestionManagerModalProps> = ({
                       {/* Sample preview list of questions */}
                       <div className="mt-3 pt-3 border-t border-slate-700/60 space-y-1">
                         <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                          Xem trước câu hỏi:
+                          Xem trước câu hỏi mẫu:
                         </span>
                         <div className="text-[11px] text-slate-300 space-y-0.5">
                           {pack.questions.slice(0, 3).map((q, qIdx) => (

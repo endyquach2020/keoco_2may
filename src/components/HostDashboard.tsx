@@ -76,6 +76,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMuted, setIsMutedState] = useState(getSoundMuted());
   const [copiedTeam, setCopiedTeam] = useState<string | null>(null);
+  const [presetFilter, setPresetFilter] = useState<'medium30' | 'fast10'>('medium30');
 
   const {
     roomCode,
@@ -420,25 +421,48 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                 Máy chủ này dùng để <strong>chiếu rạp cho cả phòng theo dõi 2 đội</strong>. Hãy gửi link hoặc mở mã QR cho Đội 1 và Đội 2 kết nối trên máy tính hoặc điện thoại của họ.
               </p>
 
-              {/* 5 BỘ CÂU HỎI NHANH (MỖI BỘ 10 CÂU) */}
+              {/* BỘ CÂU HỎI THI ĐẤU (10 CHỦ ĐỀ 30 CÂU & 5 BỘ ĐẤU NHANH) */}
               <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-left space-y-3 shadow-inner">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
                     <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
-                      Chọn nhanh bộ câu hỏi thi đấu (10 câu / bộ):
+                      Bộ câu hỏi thi đấu có sẵn:
                     </span>
                   </div>
-                  <button
-                    onClick={() => setIsQuestionModalOpen(true)}
-                    className="text-xs text-slate-400 hover:text-amber-400 font-semibold underline transition-colors"
-                  >
-                    Quản lý / Tự soạn thêm
-                  </button>
+
+                  {/* Filter toggle pills */}
+                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                    <button
+                      onClick={() => setPresetFilter('medium30')}
+                      className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                        presetFilter === 'medium30'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      10 Chủ Đề Tiêu Chuẩn (30 câu - TB) ⭐
+                    </button>
+                    <button
+                      onClick={() => setPresetFilter('fast10')}
+                      className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                        presetFilter === 'fast10'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      5 Bộ Đấu Nhanh (10 câu)
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {Object.entries(PRESET_PACKS).map(([key, pack]) => {
+                  {Object.entries(PRESET_PACKS)
+                    .filter(([_, pack]) => {
+                      if (presetFilter === 'medium30') return pack.questions.length === 30;
+                      return pack.questions.length === 10;
+                    })
+                    .map(([key, pack]) => {
                     const isSelected =
                       questions.length === pack.questions.length &&
                       questions[0]?.id === pack.questions[0]?.id;
@@ -463,9 +487,20 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
                           <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
                             {pack.description}
                           </p>
-                          <span className="inline-block mt-1 px-1.5 py-0.2 rounded bg-slate-800 text-[10px] text-amber-300 font-semibold border border-slate-700">
-                            10 câu hỏi
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border ${
+                              pack.questions.length === 30
+                                ? 'bg-indigo-950/80 text-indigo-300 border-indigo-500/30'
+                                : 'bg-slate-800 text-amber-300 border-slate-700'
+                            }`}>
+                              {pack.questions.length} câu hỏi
+                            </span>
+                            {pack.difficulty && (
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-950/60 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                                Cấp độ {pack.difficulty}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );

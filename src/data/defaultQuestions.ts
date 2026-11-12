@@ -473,50 +473,180 @@ export const PACK_VAN_HOA: Question[] = [
 // DEFAULT SET CỦA TRẬN ĐẤU (10 CÂU MẶC ĐỊNH BỘ 1)
 export const DEFAULT_QUESTIONS: Question[] = PACK_DO_VUI;
 
-// 5 BỘ CÂU HỎI MỖI BỘ ĐÚNG 10 CÂU ĐƯỢC ĐẶT TÊN VÀ PHÂN LOẠI RÕ RÀNG
-export const PRESET_PACKS: Record<
-  string,
-  {
-    name: string;
-    description: string;
-    icon: string;
-    category: string;
-    questions: Question[];
-  }
-> = {
+// IMPORT 10 CHỦ ĐỀ THI ĐẤU MỚI (MỖI BỘ 30 CÂU - CẤP ĐỘ TRUNG BÌNH)
+import { PACK_TIENG_ANH } from './packs/pack1_tienganh.js';
+import { PACK_THE_THAO } from './packs/pack2_thethao.js';
+import { PACK_DIEN_ANH } from './packs/pack3_dienanh.js';
+import { PACK_LICHSU_THEGIOI } from './packs/pack4_lichsuthegioi.js';
+import { PACK_DIALY_THEGIOI } from './packs/pack5_dialythegioi.js';
+import { PACK_CONG_NGHE } from './packs/pack6_congnghe.js';
+import { PACK_AM_NHAC } from './packs/pack7_amnhac.js';
+import { PACK_DONG_VAT } from './packs/pack8_dongvat.js';
+import { PACK_SUC_KHOE } from './packs/pack9_suckhoe.js';
+import { PACK_VAN_HOC } from './packs/pack10_vanhoc.js';
+
+export {
+  PACK_TIENG_ANH,
+  PACK_THE_THAO,
+  PACK_DIEN_ANH,
+  PACK_LICHSU_THEGIOI,
+  PACK_DIALY_THEGIOI,
+  PACK_CONG_NGHE,
+  PACK_AM_NHAC,
+  PACK_DONG_VAT,
+  PACK_SUC_KHOE,
+  PACK_VAN_HOC,
+};
+
+export interface PresetPackInfo {
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  difficulty?: 'Dễ' | 'Trung bình' | 'Nâng cao';
+  badge?: string;
+  questions: Question[];
+}
+
+// TỔNG HỢP CÁC BỘ CÂU HỎI CÓ SẴN (GỒM 5 BỘ ĐẤU NHANH 10 CÂU VÀ 10 CHỦ ĐỀ TRUNG BÌNH 30 CÂU)
+export const PRESET_PACKS: Record<string, PresetPackInfo> = {
+  // === 10 CHỦ ĐỀ THI ĐẤU TIÊU CHUẨN (MỖI BỘ 30 CÂU - CẤP ĐỘ TRUNG BÌNH) ===
+  pack_tienganh: {
+    name: 'Chủ đề 1: Tiếng Anh Giao Tiếp & Từ Vựng',
+    description: 'Từ vựng thông dụng, thành ngữ phổ biến, ngữ pháp căn bản và giao tiếp đời sống.',
+    icon: '🇬🇧',
+    category: 'Ngoại ngữ',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_TIENG_ANH,
+  },
+  pack_thethao: {
+    name: 'Chủ đề 2: Thể Thao Việt Nam & Thế Giới',
+    description: 'Bóng đá, Olympic, SEA Games, quần vợt, bơi lội, võ thuật và kỷ lục thể thao đỉnh cao.',
+    icon: '⚽',
+    category: 'Thể thao',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_THE_THAO,
+  },
+  pack_dienanh: {
+    name: 'Chủ đề 3: Điện Ảnh & Hoạt Hình Tuổi Thơ',
+    description: 'Disney, Pixar, Anime Ghibli, vũ trụ Marvel, Oscar và các bộ phim điện ảnh kinh điển.',
+    icon: '🎬',
+    category: 'Điện ảnh',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_DIEN_ANH,
+  },
+  pack_lichsuthegioi: {
+    name: 'Chủ đề 4: Lịch Sử Thế Giới & Các Nền Văn Minh',
+    description: 'Kim tự tháp Ai Cập, La Mã, Phục Hưng, các cuộc đại phát kiến địa lý và Thế chiến.',
+    icon: '🏛️',
+    category: 'Lịch sử thế giới',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_LICHSU_THEGIOI,
+  },
+  pack_dialythegioi: {
+    name: 'Chủ đề 5: Địa Lý Thế Giới & Kỳ Quan Năm Châu',
+    description: 'Thủ đô các nước, đại dương, sông ngòi, dãy núi hùng vĩ và các kỳ quan thiên nhiên.',
+    icon: '🌍',
+    category: 'Địa lý thế giới',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_DIALY_THEGIOI,
+  },
+  pack_congnghe: {
+    name: 'Chủ đề 6: Công Nghệ, Máy Tính & Internet',
+    description: 'Phần cứng máy tính, trí tuệ nhân tạo (AI), hệ điều hành, an toàn mạng và di động.',
+    icon: '💻',
+    category: 'Công nghệ',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_CONG_NGHE,
+  },
+  pack_amnhac: {
+    name: 'Chủ đề 7: Âm Nhạc & Nhạc Cụ 4 Phương',
+    description: 'Nhạc sĩ cổ điển Mozart - Beethoven, nhạc cụ dân tộc, ban nhạc huyền thoại và nhạc lý.',
+    icon: '🎵',
+    category: 'Âm nhạc',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_AM_NHAC,
+  },
+  pack_dongvat: {
+    name: 'Chủ đề 8: Thế Giới Động Vật & Đại Dương Bí Ẩn',
+    description: 'Tập tính kỳ thú, kỷ lục sinh vật, các loài chim di cư và sinh vật biển sâu.',
+    icon: '🐬',
+    category: 'Động vật học',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_DONG_VAT,
+  },
+  pack_suckhoe: {
+    name: 'Chủ đề 9: Sức Khỏe, Dinh Dưỡng & Cơ Thể',
+    description: 'Khung xương, vitamin, hệ miễn dịch, thói quen lành mạnh và kỹ năng sơ cứu cần thiết.',
+    icon: '🍎',
+    category: 'Sức khỏe',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_SUC_KHOE,
+  },
+  pack_vanhoc: {
+    name: 'Chủ đề 10: Văn Học & Truyện Cổ Tích Chọn Lọc',
+    description: 'Kiệt tác Truyện Kiều, Andersen, Nam Cao, Shakespeare và truyện cổ tích nuôi dưỡng tâm hồn.',
+    icon: '📚',
+    category: 'Văn học',
+    difficulty: 'Trung bình',
+    badge: '30 câu • Trung bình',
+    questions: PACK_VAN_HOC,
+  },
+
+  // === 5 BỘ ĐẤU NHANH (MỖI BỘ 10 CÂU) ===
   pack1_dovui: {
-    name: 'Bộ 1: Đố Vui Dân Gian & Hại Não',
+    name: 'Đố Vui Dân Gian & Hại Não',
     description: 'Các câu đố mẹo dân gian Việt Nam vui nhộn, bất ngờ, kích thích phản xạ hài hước.',
     icon: '😄',
     category: 'Đố vui',
+    difficulty: 'Dễ',
+    badge: '10 câu • Đấu nhanh',
     questions: PACK_DO_VUI,
   },
   pack2_lichsu: {
-    name: 'Bộ 2: Lịch Sử & Địa Lý Việt Nam',
+    name: 'Lịch Sử & Địa Lý Việt Nam',
     description: 'Kiến thức về danh lam thắng cảnh, di sản, địa danh lịch sử và các mốc son hào hùng của dân tộc.',
     icon: '🇻🇳',
     category: 'Lịch sử - Địa lý',
+    difficulty: 'Dễ',
+    badge: '10 câu • Đấu nhanh',
     questions: PACK_LICH_SU,
   },
   pack3_khoahoc: {
-    name: 'Bộ 3: Khoa Học Tự Nhiên & Vũ Trụ',
+    name: 'Khoa Học Tự Nhiên & Vũ Trụ',
     description: 'Khám phá bí ẩn vũ trụ, động vật kỳ thú, các hiện tượng vật lý và hóa học quanh ta.',
     icon: '🚀',
     category: 'Khoa học',
+    difficulty: 'Trung bình',
+    badge: '10 câu • Đấu nhanh',
     questions: PACK_KHOA_HOC,
   },
   pack4_toanlogic: {
-    name: 'Bộ 4: Toán Học & Tư Duy Logic',
+    name: 'Toán Học & Tư Duy Logic',
     description: 'Rèn luyện khả năng tính nhanh, quy luật dãy số, câu đố logic đòi hỏi độ chuẩn xác cao.',
     icon: '🧩',
     category: 'Toán học & Logic',
+    difficulty: 'Trung bình',
+    badge: '10 câu • Đấu nhanh',
     questions: PACK_TOAN_LOGIC,
   },
   pack5_vanhoa: {
-    name: 'Bộ 5: Văn Hóa, Ẩm Thực & Đời Sống',
+    name: 'Văn Hóa, Ẩm Thực & Đời Sống',
     description: 'Khám phá các món ăn đặc sản 3 miền, phong tục cổ truyền, ca dao tục ngữ và lễ hội Việt Nam.',
     icon: '🍲',
     category: 'Văn hóa & Ẩm thực',
-    questions: PACK_VAN_HOA,
+    difficulty: 'Dễ',
+    badge: '10 câu • Đấu nhanh',
+    questions: PACK_VAN_HOC,
   },
 };
+
